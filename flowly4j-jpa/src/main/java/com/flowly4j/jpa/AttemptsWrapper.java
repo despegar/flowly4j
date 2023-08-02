@@ -2,21 +2,23 @@ package com.flowly4j.jpa;
 
 import com.flowly4j.core.session.Attempts;
 import io.vavr.control.Option;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
 import java.time.Instant;
 
 @NoArgsConstructor
 @Embeddable
 public class AttemptsWrapper {
 
+    @Column(name = "ATTEMPS_QUANTITY")
     private Integer quantity;
 
-    @Column(name = "first_attempt")
+    @Column(name = "ATTEMPS_FIRST_ATTEMPT")
     private Instant firstAttempt;
 
-    @Column(name = "next_retry")
+    @Column(name = "ATTEMPS_NEXT_RETRY")
     private Instant nextRetry;
 
     public AttemptsWrapper(Attempts attempts) {

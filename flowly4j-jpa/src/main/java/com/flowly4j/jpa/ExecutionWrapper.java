@@ -11,13 +11,13 @@ import java.time.Instant;
 @Embeddable
 public class ExecutionWrapper {
 
-    @Column(name = "execution_task_id")
+    @Column(name = "EXECUTION_TASK_ID")
     private String taskId;
 
-    @Column(name = "execution_time")
+    @Column(name = "EXECUTION_TIME")
     private Instant at;
 
-    @Column(name = "execution_message")
+    @Column(name = "EXECUTION_MESSAGE")
     private String message;
 
     public ExecutionWrapper(Execution execution) {

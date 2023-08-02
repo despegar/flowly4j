@@ -15,32 +15,34 @@ import java.time.Instant;
 import java.util.Map;
 
 @Entity
-@Table(name = "sessions")
+@Table(name = "WF_SESSION")
 @NoArgsConstructor
 @Getter
 public class SessionWrapper {
     @Id
-    @Column(name = "session_id")
+    @Column(name = "SESSION_ID")
     private String sessionId;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "session_variables", joinColumns = @JoinColumn(name = "session_id"))
-    @MapKeyColumn(name = "variable_key")
-    @Column(name = "variable_value")
+    @CollectionTable(name = "WF_SESSION_VARIABLES", joinColumns = @JoinColumn(name = "SESSION_ID"))
+    @MapKeyColumn(name = "KEY")
+    @Column(name = "VALUE")
     private Map<String, String> variables;
+
+    @Column(name = "CREATE_AT")
+    private Instant createAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    private Status status;
+
+    @Version
+    @Column(name = "VERSION")
+    private Long version;
 
     private ExecutionWrapper lastExecution;
 
     private AttemptsWrapper attempts;
-
-    @Column(name = "create_at")
-    private Instant createAt;
-
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
-    @Version
-    private Long version;
 
     public SessionWrapper(Session session, ObjectMapper objectMapper) {
         this.sessionId = session.getSessionId();
