@@ -31,10 +31,10 @@ public class JpaFlowlyRepository implements Repository {
         try {
 
             EntityManager entityManager = getEntityManager();
-            SessionWrapper session = entityManager.find(SessionWrapper.class, sessionId);
+            Option<SessionWrapper> session = Option.of(entityManager.find(SessionWrapper.class, sessionId));
             entityManager.close();
 
-            return Option.of(session.toSession(objectMapper));
+            return session.map(s -> s.toSession(objectMapper));
 
         } catch (Throwable throwable) {
             throw new PersistenceException("Error getting session " + sessionId, throwable);
