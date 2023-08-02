@@ -2,9 +2,10 @@ package com.flowly4j.jpa;
 
 import com.flowly4j.core.session.Execution;
 import io.vavr.control.Option;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
 import java.time.Instant;
 
 @NoArgsConstructor
