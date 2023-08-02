@@ -8,9 +8,11 @@ import com.flowly4j.core.session.Status;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
+
 import io.vavr.collection.Iterator;
 import io.vavr.control.Option;
 import lombok.AccessLevel;
@@ -18,12 +20,17 @@ import lombok.experimental.FieldDefaults;
 import lombok.val;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
+import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
+import org.mongojack.JacksonMongoCollection.JacksonMongoCollectionBuilder;
 import org.mongojack.MongoJsonMappingException;
 import org.mongojack.internal.object.document.DocumentObjectGenerator;
+import org.mongojack.internal.stream.JacksonDBObject;
+import org.mongojack.internal.util.DocumentSerializationUtils;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
+
 import java.io.IOException;
 import java.sql.Date;
 import java.time.Instant;
@@ -105,7 +112,7 @@ public class MongoDBRepository implements Repository {
                    throw new MongoException("Unknown error occurred converting BSON to object", e);
                }
             Document document =  generator.getDocument();
-
+            
             document.remove("version");
 
             val update = new Document("$set", document);
