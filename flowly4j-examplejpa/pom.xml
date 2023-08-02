@@ -52,13 +52,6 @@
         </dependency>
         <!-- MySql database -->
 
-        <dependency>
-            <groupId>com.flowly4j</groupId>
-            <artifactId>flowly4j-mongodb</artifactId>
-            <version>0.25-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
