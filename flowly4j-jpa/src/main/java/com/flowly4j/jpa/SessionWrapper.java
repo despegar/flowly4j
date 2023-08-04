@@ -25,8 +25,8 @@ public class SessionWrapper {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "WF_SESSION_VARIABLES", joinColumns = @JoinColumn(name = "SESSION_ID"))
-    @MapKeyColumn(name = "KEY")
-    @Column(name = "VALUE")
+    @MapKeyColumn(name = "VARIABLE_ID")
+    @Column(name = "VARIABLE_OBJECT")
     private Map<String, String> variables;
 
     @Column(name = "CREATE_AT")
