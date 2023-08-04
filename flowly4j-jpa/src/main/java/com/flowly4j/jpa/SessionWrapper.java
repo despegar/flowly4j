@@ -1,7 +1,7 @@
 package com.flowly4j.jpa;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowly4j.core.errors.SerializationException;
 import com.flowly4j.core.session.Session;
 import com.flowly4j.core.session.Status;
 import io.vavr.collection.HashMap;
@@ -46,11 +46,11 @@ public class SessionWrapper {
 
     public SessionWrapper(Session session, ObjectMapper objectMapper) {
         this.sessionId = session.getSessionId();
-        this.variables = session.getVariables().mapValues(v -> {
+        this.variables = session.getVariables().mapValues(value -> {
             try {
-                return objectMapper.writeValueAsString(v);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                return objectMapper.writeValueAsString(value);
+            } catch (Throwable cause) {
+                throw new SerializationException("Error trying to serialize " + value, cause);
             }
         }).toJavaMap();
         this.lastExecution = session.getLastExecution().map(ExecutionWrapper::new).getOrNull();
@@ -63,11 +63,11 @@ public class SessionWrapper {
     public Session toSession(ObjectMapper objectMapper) {
         return new Session(
                 sessionId,
-                HashMap.ofAll(variables).mapValues(v -> {
+                HashMap.ofAll(variables).mapValues(value -> {
                     try {
-                        return objectMapper.readValue(v, Object.class);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        return objectMapper.readValue(value, Object.class);
+                    } catch (IOException cause) {
+                        throw new SerializationException("Error trying to deserialize " + value, cause);
                     }
                 }),
                 Option.of(lastExecution).map(ExecutionWrapper::toExecution),

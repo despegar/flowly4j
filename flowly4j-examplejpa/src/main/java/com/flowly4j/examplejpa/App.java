@@ -28,7 +28,6 @@ import static com.flowly4j.examplejpa.CustomKeys.*;
 public class App {
 
     public static void main(String[] args) {
-        //TODO SOLN: si usamos el mismo object mapper para repo y serializer funciona, Dory usa dos distintos
 
         val objectMapperContext = new ObjectMapper();
         objectMapperContext.registerModule(new JavaTimeModule());
