@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowly4j.core.errors.SerializationException;
 import com.flowly4j.core.session.Session;
 import com.flowly4j.core.session.Status;
-import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
 import io.vavr.control.Option;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Map;
 
 @Entity
 @Table(name = "WF_SESSION")
@@ -23,10 +22,7 @@ public class SessionWrapper {
     @Column(name = "SESSION_ID")
     private String sessionId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "WF_SESSION_VARIABLES", joinColumns = @JoinColumn(name = "SESSION_ID"))
-    @MapKeyColumn(name = "VARIABLE_ID")
-    @Column(name = "VARIABLE_OBJECT")
+    @Convert(converter = VavrMapToJavaMapConverter.class)
     private Map<String, String> variables;
 
     @Column(name = "CREATE_AT")
@@ -52,7 +48,7 @@ public class SessionWrapper {
             } catch (Throwable cause) {
                 throw new SerializationException("Error trying to serialize " + value, cause);
             }
-        }).toJavaMap();
+        });
         this.lastExecution = session.getLastExecution().map(ExecutionWrapper::new).getOrNull();
         this.attempts = session.getAttempts().map(AttemptsWrapper::new).getOrNull();
         this.createAt = session.getCreateAt();
@@ -63,7 +59,7 @@ public class SessionWrapper {
     public Session toSession(ObjectMapper objectMapper) {
         return new Session(
                 sessionId,
-                HashMap.ofAll(variables).mapValues(value -> {
+                variables.mapValues(value -> {
                     try {
                         return objectMapper.readValue(value, Object.class);
                     } catch (IOException cause) {
