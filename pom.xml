@@ -159,11 +159,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>InternalSnapshot</id>
-            <url>https://cnd-backend/nexus/repository/maven-snapshots</url>
+            <url> https://backoffice-secure.despegar.com/nexus/repository/maven-snapshots</url>
         </snapshotRepository>
         <repository>
             <id>InternalRelease</id>
-            <url>https://cnd-backend/nexus/repository/maven-releases</url>
+            <url> https://backoffice-secure.despegar.com/nexus/repository/maven-releases</url>
         </repository>
 
     </distributionManagement>
