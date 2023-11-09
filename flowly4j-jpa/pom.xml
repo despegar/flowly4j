@@ -6,17 +6,18 @@
     <parent>
         <groupId>com.flowly4j</groupId>
         <artifactId>flowly4j</artifactId>
-        <version>0.28-SNAPSHOT</version>
+        <version>0.27</version>
     </parent>
 
     <artifactId>flowly4j-jpa</artifactId>
+  <version>0.28-jpaIntegration1</version>
 
     <dependencies>
 
         <dependency>
             <groupId>com.flowly4j</groupId>
             <artifactId>flowly4j-core</artifactId>
-            <version>0.28-SNAPSHOT</version>
+            <version>0.27</version>
         </dependency>
 
         <dependency>
