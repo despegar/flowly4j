@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.flowly4j</groupId>
             <artifactId>flowly4j-jpa</artifactId>
-            <version>0.28-jpaIntegration1</version>
+            <version>0.28-SNAPSHOT</version>
         </dependency>
 
         <dependency>
