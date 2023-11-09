@@ -13,6 +13,7 @@ import com.flowly4j.core.input.Param;
 import com.flowly4j.core.serialization.Serializer;
 import com.flowly4j.jpa.JpaFlowlyRepository;
 import io.vavr.jackson.datatype.VavrModule;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import lombok.val;
@@ -36,9 +37,9 @@ public class App {
         objectMapperContext.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapperContext.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("com.flowly4j.examplejpa");
+        EntityManager entityManager = Persistence.createEntityManagerFactory("com.flowly4j.examplejpa").createEntityManager();
 
-        val repository = new JpaFlowlyRepository(entityManagerFactory, objectMapperContext);
+        val repository = new JpaFlowlyRepository(entityManager, objectMapperContext);
 
         val factory = new ExecutionContext.ExecutionContextFactory(new Serializer(objectMapperContext));
 
@@ -51,6 +52,8 @@ public class App {
         val result = workflow.execute(sessionId);
 
         System.out.println(result);
+
+        entityManager.close();
 
     }
 

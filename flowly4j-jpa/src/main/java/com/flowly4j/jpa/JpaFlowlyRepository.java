@@ -18,11 +18,11 @@ import java.time.Instant;
 
 public class JpaFlowlyRepository implements Repository {
 
-    private final EntityManagerFactory entityManagerFactory;
+    private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
 
-    public JpaFlowlyRepository(EntityManagerFactory entityManagerFactory, ObjectMapper objectMapper) {
-        this.entityManagerFactory = entityManagerFactory;
+    public JpaFlowlyRepository(EntityManager entityManager, ObjectMapper objectMapper) {
+        this.entityManager = entityManager;
         this.objectMapper = objectMapper;
     }
 
@@ -30,9 +30,7 @@ public class JpaFlowlyRepository implements Repository {
     public Option<Session> get(String sessionId) {
         try {
 
-            EntityManager entityManager = getEntityManager();
             Option<SessionWrapper> session = Option.of(entityManager.find(SessionWrapper.class, sessionId));
-            entityManager.close();
 
             return session.map(s -> s.toSession(objectMapper));
 
@@ -41,21 +39,14 @@ public class JpaFlowlyRepository implements Repository {
         }
     }
 
-    private EntityManager getEntityManager() {
-        //TODO SOLN: esta bien crear uno por cada consulta y luego cerrarlo?
-        return entityManagerFactory.createEntityManager();
-    }
-
     @Override
     public Session insert(Session session) {
         try {
 
             SessionWrapper sessionWrapper = new SessionWrapper(session, objectMapper);
-            EntityManager entityManager = getEntityManager();
             entityManager.getTransaction().begin();
             entityManager.persist(sessionWrapper);
             entityManager.getTransaction().commit();
-            entityManager.close();
 
             return session;
 
@@ -69,11 +60,9 @@ public class JpaFlowlyRepository implements Repository {
         try {
 
             SessionWrapper sessionWrapper = new SessionWrapper(session, objectMapper);
-            EntityManager entityManager = getEntityManager();
             entityManager.getTransaction().begin();
             SessionWrapper updatedSession = entityManager.merge(sessionWrapper);
             entityManager.getTransaction().commit();
-            entityManager.close();
 
             return updatedSession.toSession(objectMapper);
 
@@ -88,7 +77,6 @@ public class JpaFlowlyRepository implements Repository {
     public Iterator<String> getToRetry() {
         try {
 
-            EntityManager entityManager = getEntityManager();
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
             Root<SessionWrapper> root = criteriaQuery.from(SessionWrapper.class);
@@ -99,10 +87,8 @@ public class JpaFlowlyRepository implements Repository {
                             criteriaBuilder.lessThanOrEqualTo(root.get("attempts").get("nextRetry"), Instant.now())
                     )
             ).orderBy(criteriaBuilder.asc(root.get("attempts").get("nextRetry")));
-            Iterator<String> sessionsToRetry = Iterator.ofAll(entityManager.createQuery(criteriaQuery).getResultList());
-            entityManager.close();
 
-            return sessionsToRetry;
+            return Iterator.ofAll(entityManager.createQuery(criteriaQuery).getResultList());
 
         } catch (Throwable throwable) {
             throw new PersistenceException("Error getting sessions to retry", throwable);
