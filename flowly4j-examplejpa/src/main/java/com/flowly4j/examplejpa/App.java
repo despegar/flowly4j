@@ -13,9 +13,8 @@ import com.flowly4j.core.input.Param;
 import com.flowly4j.core.serialization.Serializer;
 import com.flowly4j.jpa.JpaFlowlyRepository;
 import io.vavr.jackson.datatype.VavrModule;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
 import lombok.val;
 
 import java.time.Instant;

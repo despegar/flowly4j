@@ -6,7 +6,7 @@ import com.flowly4j.core.session.Session;
 import com.flowly4j.core.session.Status;
 import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
