@@ -2,11 +2,13 @@ package com.flowly4j.core.session;
 
 import io.vavr.control.Option;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.time.Instant;
 
+@EqualsAndHashCode
 @Getter
 @ToString
 @AllArgsConstructor

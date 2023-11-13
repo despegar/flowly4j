@@ -2,8 +2,8 @@ package com.flowly4j.core.session;
 
 import com.flowly4j.core.tasks.Task;
 import io.vavr.control.Option;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -12,6 +12,7 @@ import java.time.Instant;
 /**
  * Execution Information
  */
+@EqualsAndHashCode
 @Getter
 @ToString
 @AllArgsConstructor
