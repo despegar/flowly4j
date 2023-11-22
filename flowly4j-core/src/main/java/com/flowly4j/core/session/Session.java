@@ -1,9 +1,7 @@
 package com.flowly4j.core.session;
 
-import com.flowly4j.core.context.ReadableExecutionContext;
-import com.flowly4j.core.context.WritableExecutionContext;
-import com.flowly4j.core.input.Param;
 import com.flowly4j.core.context.ExecutionContext;
+import com.flowly4j.core.input.Param;
 import com.flowly4j.core.tasks.Task;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
@@ -18,9 +16,10 @@ import java.util.UUID;
  * It represent a workflow instance
  *
  */
+@EqualsAndHashCode
 @Getter
 @ToString
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class Session {
 
     /**
