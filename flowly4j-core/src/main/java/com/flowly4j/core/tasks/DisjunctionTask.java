@@ -12,10 +12,6 @@ import com.flowly4j.core.tasks.results.TaskResult;
 import io.vavr.Function1;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Value;
-import lombok.experimental.FieldDefaults;
 
 import static io.vavr.API.$;
 import static io.vavr.API.Case;
@@ -27,11 +23,9 @@ import static io.vavr.Patterns.$Some;
  * <p>
  * It will test each condition until find any that works. If no condition works, this {@link Task} will fail or block.
  */
-@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public abstract class DisjunctionTask extends Task {
 
-    @Getter(lazy = true)
-    private final List<Branch> branches = branches();
+    private volatile List<Branch> branches;
 
     public DisjunctionTask() {
     }
@@ -41,11 +35,27 @@ public abstract class DisjunctionTask extends Task {
     }
 
     /**
+     * Get branches with lazy initialization
+     */
+    public List<Branch> getBranches() {
+        List<Branch> result = branches;
+        if (result == null) {
+            synchronized (this) {
+                result = branches;
+                if (result == null) {
+                    branches = result = branches();
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * A list of tasks that follows this task
      */
     @Override
     public final List<Task> followedBy() {
-        return super.followedBy().pushAll(getBranches().map(branch -> branch.task));
+        return super.followedBy().pushAll(getBranches().map(branch -> branch.getTask()));
     }
 
     /**
@@ -97,19 +107,55 @@ public abstract class DisjunctionTask extends Task {
     protected abstract List<Branch> branches();
 
     private Option<Task> next(ExecutionContext executionContext) {
-        return getBranches().find( branch -> branch.condition.apply(executionContext) ).map( branch -> branch.task );
+        return getBranches().find( branch -> branch.getCondition().apply(executionContext) ).map( branch -> branch.getTask() );
     }
 
-    @Value(staticConstructor = "of")
-    public static class Branch {
+    public static final class Branch {
+        private final Task task;
+        private final Function1<ReadableExecutionContext, Boolean> condition;
 
-        Task task;
-        Function1<ReadableExecutionContext, Boolean> condition;
+        private Branch(Task task, Function1<ReadableExecutionContext, Boolean> condition) {
+            this.task = task;
+            this.condition = condition;
+        }
+
+        public static Branch of(Task task, Function1<ReadableExecutionContext, Boolean> condition) {
+            return new Branch(task, condition);
+        }
 
         public static List<Branch> of(Function1<ReadableExecutionContext, Boolean> condition, Task ifTrue, Task ifFalse) {
             return List.of(Branch.of(ifTrue, condition), Branch.of(ifFalse, c -> true));
         }
 
+        public Task getTask() {
+            return task;
+        }
+
+        public Function1<ReadableExecutionContext, Boolean> getCondition() {
+            return condition;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Branch branch = (Branch) o;
+            return java.util.Objects.equals(task, branch.task) &&
+                    java.util.Objects.equals(condition, branch.condition);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(task, condition);
+        }
+
+        @Override
+        public String toString() {
+            return "Branch{" +
+                    "task=" + task +
+                    ", condition=" + condition +
+                    '}';
+        }
     }
 
 }

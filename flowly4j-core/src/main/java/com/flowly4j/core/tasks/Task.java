@@ -5,8 +5,6 @@ import com.flowly4j.core.input.Key;
 import com.flowly4j.core.tasks.compose.Trait;
 import com.flowly4j.core.tasks.results.TaskResult;
 import io.vavr.collection.List;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
@@ -16,18 +14,11 @@ import java.util.UUID;
  * There is no possible to use two identical Task in the same workflow
  *
  */
-@ToString
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public abstract class Task {
 
-    @Getter
-    String id;
-
-    @Getter(lazy = true)
-    List<Trait> traits = traits();
-
-    @Getter
-    String internalID = UUID.randomUUID().toString();
+    private String id;
+    private volatile List<Trait> traits;
+    private final String internalID = UUID.randomUUID().toString();
 
     public Task() {
         this.id = this.getClass().getSimpleName();
@@ -35,6 +26,30 @@ public abstract class Task {
 
     public Task(String id) {
         this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getInternalID() {
+        return internalID;
+    }
+
+    /**
+     * Get traits with lazy initialization
+     */
+    public List<Trait> getTraits() {
+        List<Trait> result = traits;
+        if (result == null) {
+            synchronized (this) {
+                result = traits;
+                if (result == null) {
+                    traits = result = traits();
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -92,5 +107,13 @@ public abstract class Task {
      * Whatever this task is going to do
      */
     protected abstract TaskResult exec(ExecutionContext executionContext);
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id='" + id + '\'' +
+                ", internalID='" + internalID + '\'' +
+                '}';
+    }
 
 }
