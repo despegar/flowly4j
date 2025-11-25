@@ -12,7 +12,6 @@ import com.flowly4j.core.tasks.results.ToRetry;
 import io.vavr.Function1;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import lombok.val;
 
 import java.time.Instant;
 
@@ -37,7 +36,7 @@ public class Retry implements Trait {
     public Function1<ExecutionContext, TaskResult> compose(Function1<ExecutionContext, TaskResult> next) {
         return context -> {
 
-            val attempts = context.getAttempts().getOrElse( () -> new Attempts(1, Instant.now(), Option.none()) );
+            final Attempts attempts = context.getAttempts().getOrElse( () -> new Attempts(1, Instant.now(), Option.none()) );
 
             return Match(next.apply(context)).of(
                     Case($OnError($Retryable($( r -> r.canBeRetried() && stoppingStrategy.shouldRetry(context, attempts) ))), cause -> new ToRetry(cause, attempts.withNextRetry(schedulingStrategy.nextRetry(context, attempts)))),

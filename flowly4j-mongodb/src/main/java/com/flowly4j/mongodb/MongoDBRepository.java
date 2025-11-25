@@ -7,26 +7,17 @@ import com.flowly4j.core.session.Session;
 import com.flowly4j.core.session.Status;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
 
 import io.vavr.collection.Iterator;
 import io.vavr.control.Option;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.val;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
-import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
-import org.mongojack.JacksonMongoCollection.JacksonMongoCollectionBuilder;
 import org.mongojack.MongoJsonMappingException;
 import org.mongojack.internal.object.document.DocumentObjectGenerator;
-import org.mongojack.internal.stream.JacksonDBObject;
-import org.mongojack.internal.util.DocumentSerializationUtils;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
@@ -42,20 +33,16 @@ import java.util.HashMap;
  * It uses Optimistic Lock to handle race condition
  *
  */
-@FieldDefaults( level = AccessLevel.PROTECTED, makeFinal = true)
 public class MongoDBRepository implements Repository {
 
-    JacksonMongoCollection<Session> collection;
-    ObjectMapper objectMapper;
-    MongoCollection<Document> mongoCollection;
+    private final JacksonMongoCollection<Session> collection;
+    private final ObjectMapper objectMapper;
 
     public MongoDBRepository(MongoClient client, String databaseName, String collectionName, ObjectMapper objectMapper) {
     	
         // Configure Object Mapper in order to work with Session
         this.objectMapper = objectMapper;
         this.objectMapper.addMixIn(Session.class, SessionMixIn.class);
-        
-        this.mongoCollection = client.getDatabase(databaseName).getCollection(collectionName);
         
         this.collection = JacksonMongoCollection.builder()
 			    .withObjectMapper(objectMapper)
@@ -115,11 +102,11 @@ public class MongoDBRepository implements Repository {
             
             document.remove("version");
 
-            val update = new Document("$set", document);
+            final Document update = new Document("$set", document);
             update.put("$inc", new Document("version", 1));
 
             // Condition: there is a session with the same sessionId and version
-            val query = new HashMap<String, Object>() {
+            final HashMap<String, Object> query = new HashMap<String, Object>() {
                 {
                     put("sessionId", session.getSessionId());
                     put("version", session.getVersion());
@@ -128,7 +115,7 @@ public class MongoDBRepository implements Repository {
             FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
             options.returnDocument(ReturnDocument.AFTER);
             
-            val result = collection.findOneAndUpdate(new Document(query), update,options);
+            final Session result = collection.findOneAndUpdate(new Document(query), update,options);
             
             // if the session doesn't exist or the version is different there is no result
             if (result == null) {
@@ -150,7 +137,7 @@ public class MongoDBRepository implements Repository {
 
         try {
 
-            val query = new HashMap<String, Object>() {
+            final HashMap<String, Object> query = new HashMap<String, Object>() {
                 {
                     put("status", Status.TO_RETRY);
                     put("attempts.nextRetry", new Document("$lte", Date.from(Instant.now())));

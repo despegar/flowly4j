@@ -3,14 +3,16 @@ package com.flowly4j.core.serialization;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowly4j.core.errors.SerializationException;
-import lombok.AllArgsConstructor;
 
 import java.io.IOException;
 
-@AllArgsConstructor
 public class Serializer {
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public Serializer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public String write(Object obj) {
         try {

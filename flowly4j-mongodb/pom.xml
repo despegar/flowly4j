@@ -20,12 +20,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.mongojack</groupId>
             <artifactId>mongojack</artifactId>
             <version>4.0.0</version>

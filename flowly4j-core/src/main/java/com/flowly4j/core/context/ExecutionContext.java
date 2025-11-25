@@ -7,7 +7,6 @@ import com.flowly4j.core.session.Attempts;
 import com.flowly4j.core.session.Session;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
-import lombok.ToString;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -15,7 +14,6 @@ import java.util.function.Supplier;
 /**
  * Execution Context is used as a bridge between Session and Tasks
  */
-@ToString(exclude = "serializer")
 public class ExecutionContext implements ReadableExecutionContext, WritableExecutionContext {
 
     private String sessionId;
@@ -83,6 +81,15 @@ public class ExecutionContext implements ReadableExecutionContext, WritableExecu
 
     public ExecutionContext copy() {
         return new ExecutionContext(sessionId, variables, attempts, serializer);
+    }
+
+    @Override
+    public String toString() {
+        return "ExecutionContext{" +
+                "sessionId='" + sessionId + '\'' +
+                ", variables=" + variables +
+                ", attempts=" + attempts +
+                '}';
     }
 
     public static class ExecutionContextFactory {

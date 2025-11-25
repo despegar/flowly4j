@@ -1,7 +1,8 @@
 package com.flowly4j.core;
 
-import com.flowly4j.core.errors.*;
+import com.flowly4j.core.context.ExecutionContext;
 import com.flowly4j.core.context.ExecutionContext.ExecutionContextFactory;
+import com.flowly4j.core.errors.*;
 import com.flowly4j.core.events.EventListener;
 import com.flowly4j.core.input.Key;
 import com.flowly4j.core.input.Param;
@@ -12,9 +13,6 @@ import com.flowly4j.core.session.Session;
 import com.flowly4j.core.tasks.Task;
 import io.vavr.collection.Iterator;
 import io.vavr.collection.List;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.val;
 
 import static com.flowly4j.core.tasks.results.TaskResultPatterns.*;
 import static io.vavr.API.$;
@@ -22,13 +20,12 @@ import static io.vavr.API.Case;
 import static io.vavr.API.Match;
 
 
-@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class Workflow {
 
-    Task initialTask;
-    Repository repository;
-    ExecutionContextFactory executionContextFactory;
-    List<EventListener> eventListeners;
+    private final Task initialTask;
+    private final Repository repository;
+    private final ExecutionContextFactory executionContextFactory;
+    private final List<EventListener> eventListeners;
 
     public Workflow(Task initialTask, Repository repository, ExecutionContextFactory executionContextFactory, List<EventListener> eventListeners) {
         this.initialTask = initialTask;
@@ -44,12 +41,12 @@ public class Workflow {
     public String init(Param... params) {
 
         // Are params allowed?
-        val keys = List.of(params).map(Param::getKey);
+        final List<Key> keys = List.of(params).map(Param::getKey);
         if(!initialTask.accept(keys)) {
             throw new ParamsNotAllowedException(initialTask.getId(), keys, "Task " + initialTask + " doesn't accept one or more of the following keys " + keys.map(Key::getIdentifier));
         }
 
-        val sessionId = repository.insert(Session.of(params)).getSessionId();
+        final String sessionId = repository.insert(Session.of(params)).getSessionId();
 
         // On Init Event
         eventListeners.forEach( l -> l.onInitialization(sessionId, List.of(params)) );
@@ -73,7 +70,7 @@ public class Workflow {
     public ExecutionResult execute(String sessionId, List<Param> params) {
 
         // Get Session
-        val session = repository.get(sessionId).getOrElseThrow( () -> new SessionNotFoundException(sessionId) );
+        final Session session = repository.get(sessionId).getOrElseThrow( () -> new SessionNotFoundException(sessionId) );
 
         // Can be executed?
         if (!session.isExecutable()) {
@@ -81,22 +78,22 @@ public class Workflow {
         }
 
         // Get current Task
-        val taskId = session.getLastExecution().map(Execution::getTaskId).getOrElse(initialTask.getId());
-        val currentTask = getTasks().find(task -> task.getId().equals(taskId)).getOrElseThrow(() -> new TaskNotFoundException(taskId, "Task " + taskId + " doesn't belong to Session " + sessionId));
+        final String taskId = session.getLastExecution().map(Execution::getTaskId).getOrElse(initialTask.getId());
+        final Task currentTask = getTasks().find(task -> task.getId().equals(taskId)).getOrElseThrow(() -> new TaskNotFoundException(taskId, "Task " + taskId + " doesn't belong to Session " + sessionId));
 
         // Are params allowed?
-        val keys = params.map(Param::getKey);
+        final List<Key> keys = params.map(Param::getKey);
         if(!currentTask.accept(keys)) {
             throw new ParamsNotAllowedException(taskId, keys, "Task " + currentTask + " doesn't accept one or more of the following keys " + keys.map(Key::getIdentifier));
         }
 
         // Set the session as running
-        val runningSession = repository.update(session.resume(currentTask, params));
+        final Session runningSession = repository.update(session.resume(currentTask, params));
 
         eventListeners.forEach( l -> {
 
             // Create Execution Context
-            val executionContext = executionContextFactory.create(runningSession);
+            final ExecutionContext executionContext = executionContextFactory.create(runningSession);
 
             // On Start or Resume Event
             if(session.getLastExecution().isDefined()) {
@@ -114,7 +111,7 @@ public class Workflow {
 
     private ExecutionResult execute(Task task, Session session) {
 
-        val executionContext = executionContextFactory.create(session);
+        final ExecutionContext executionContext = executionContextFactory.create(session);
 
         // Execute the current task
         return Match(task.execute(executionContext)).of(
@@ -122,7 +119,7 @@ public class Workflow {
                 Case($Continue($(), $()), (nextTask, resultingExecutionContext) -> {
 
                     // Set the session as running (with new context and next task)
-                    val runningSession = repository.update(session.continuee(nextTask, resultingExecutionContext));
+                    final Session runningSession = repository.update(session.continuee(nextTask, resultingExecutionContext));
 
                     // On Continue Event
                     eventListeners.forEach( l -> l.onContinue(resultingExecutionContext, task.getId(), nextTask.getId()) );
@@ -134,7 +131,7 @@ public class Workflow {
                 Case($SkipAndContinue($(), $()), (nextTask, resultingExecutionContext) -> {
 
                     // Set the session as running (with new context and next task)
-                    val runningSession = repository.update(session.continuee(nextTask, resultingExecutionContext));
+                    final Session runningSession = repository.update(session.continuee(nextTask, resultingExecutionContext));
 
                     // On SkipAndContinue & Continue Event
                     eventListeners.forEach( l -> {
@@ -149,7 +146,7 @@ public class Workflow {
 
                 Case($Block, () -> {
 
-                    val blockedSession = repository.update(session.blocked(task));
+                    final Session blockedSession = repository.update(session.blocked(task));
 
                     // On Block Event
                     eventListeners.forEach( l -> l.onBlock(executionContext, task.getId()) );
@@ -160,7 +157,7 @@ public class Workflow {
 
                 Case($Finish, () -> {
 
-                    val finishedSession = repository.update(session.finished(task));
+                    final Session finishedSession = repository.update(session.finished(task));
 
                     // On Finish Event
                     eventListeners.forEach( l -> l.onFinish(executionContext, task.getId()) );
@@ -171,7 +168,7 @@ public class Workflow {
 
                 Case($ToRetry($(), $()), (cause, attempts) -> {
 
-                    val sessionWithRetry = repository.update(session.toRetry(task, cause, attempts));
+                    final Session sessionWithRetry = repository.update(session.toRetry(task, cause, attempts));
 
                     eventListeners.forEach( l -> l.onToRetry(executionContext, task.getId(), cause, attempts) );
 
@@ -181,7 +178,7 @@ public class Workflow {
 
                 Case($OnError($()), cause -> {
 
-                    val sessionWithError = repository.update(session.onError(task, cause));
+                    final Session sessionWithError = repository.update(session.onError(task, cause));
 
                     // On Error Event
                     eventListeners.forEach( l -> l.onError(executionContext, task.getId(), cause) );
@@ -200,11 +197,11 @@ public class Workflow {
     public List<Key> currentAllowedKeys(String sessionId) {
 
         // Get Session
-        val session = repository.get(sessionId).getOrElseThrow( () -> new SessionNotFoundException(sessionId) );
+        final Session session = repository.get(sessionId).getOrElseThrow( () -> new SessionNotFoundException(sessionId) );
 
         // Get current Task
-        val taskId = session.getLastExecution().map(Execution::getTaskId).getOrElse(initialTask.getId());
-        val currentTask = getTasks().find(task -> task.getId().equals(taskId)).getOrElseThrow(() -> new TaskNotFoundException(taskId, "Task " + taskId + " doesn't belong to Session " + sessionId));
+        final String taskId = session.getLastExecution().map(Execution::getTaskId).getOrElse(initialTask.getId());
+        final Task currentTask = getTasks().find(task -> task.getId().equals(taskId)).getOrElseThrow(() -> new TaskNotFoundException(taskId, "Task " + taskId + " doesn't belong to Session " + sessionId));
 
         return currentTask.allowedKeys();
 
@@ -230,8 +227,8 @@ public class Workflow {
     }
 
     private void checkConsistency() {
-        val tasks = getTasks().map(Task::getId);
-        val duplicated = tasks.distinct().foldRight( tasks, (taskId, remainingTasks) -> remainingTasks.remove(taskId) );
+        final List<String> tasks = getTasks().map(Task::getId);
+        final List<String> duplicated = tasks.distinct().foldRight( tasks, (taskId, remainingTasks) -> remainingTasks.remove(taskId) );
         if(duplicated.nonEmpty()) {
             throw new IllegalStateException("There are repeated Tasks: " + duplicated + ". Workflow can't be constructed");
         }
