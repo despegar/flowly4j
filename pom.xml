@@ -163,7 +163,35 @@
             <id>InternalRelease</id>
             <url>https://artifacts.us-east-1.despegar.net/dependencies/repository/maven-all/</url>
         </repository>
-
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>internal</id>
+            <name>Nexus Public Repository</name>
+            <url>https://artifacts.us-east-1.despegar.net/dependencies/repository/maven-all/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <name>Nexus Snapshots Repository</name>
+            <url>https://artifacts.us-east-1.despegar.net/dependencies/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
