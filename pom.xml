@@ -157,11 +157,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>InternalSnapshot</id>
-            <url>https://backoffice-secure.despegar.com/nexus/repository/maven-snapshots</url>
+            <url>https://artifacts.us-east-1.despegar.net/dependencies/repository/maven-snapshots</url>
         </snapshotRepository>
         <repository>
             <id>InternalRelease</id>
-            <url>https://backoffice-secure.despegar.com/nexus/repository/maven-releases</url>
+            <url>https://artifacts.us-east-1.despegar.net/dependencies/repository/maven-all/</url>
         </repository>
 
     </distributionManagement>
